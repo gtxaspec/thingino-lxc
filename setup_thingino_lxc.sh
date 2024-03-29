@@ -49,8 +49,9 @@ if [ "$installation_needed" = true ]; then
 	fi
 fi
 
-echo "Version 0.6"
-echo "This script will setup an LXC debian 12 container.  Starting in 10 seconds..."
+echo "Version 0.7"
+echo "This script will setup an LXC debian 12 container tailored for thingino-firmware development  Starting in 10 seconds..."
+echo "Press Ctrl-C to exit now."
 
 sleep 10
 
