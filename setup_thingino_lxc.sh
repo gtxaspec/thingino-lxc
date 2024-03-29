@@ -49,8 +49,8 @@ if [ "$installation_needed" = true ]; then
 	fi
 fi
 
-echo "Version 0.7"
-echo "This script will setup an LXC debian 12 container tailored for thingino-firmware development  Starting in 10 seconds..."
+echo "Version 0.8"
+echo -e "This script will setup an LXC debian 12 container tailored for thingino-firmware development  \n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
 echo "Press Ctrl-C to exit now."
 
 sleep 10
@@ -93,7 +93,33 @@ lxc-attach -n thingino-development -- su - thingino-dev -c "ccache --max-size=10
 
 # Update the PATH for the thingino-dev user
 lxc-attach -n thingino-development -- su - thingino-dev -c "echo 'export PATH=/usr/bin/ccache:\$PATH:/home/thingino-dev/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/bin/' >> ~/.bashrc"
+lxc-attach -n thingino-development -- su - thingino-dev -c "echo 'export BR2_DL_DIR=/mnt/BR2_DL' >> ~/.bashrc"
 
-echo -e "\nLXC container setup is complete... WELCOME TO THINGINO-DEVELOPMENT.  \n\nUse 'sudo lxc-attach -n thingino-development -- su - thingino-dev' to attach to your container at anytime.\n"
-echo -e "Attaching you to your "thingino-development" container..."
+# Add an alias thingino-dev user to start the container
+echo "alias attach-thingino='echo "attach to thingino-development container..."; sudo lxc-attach -n thingino-development -- su - thingino-dev'" >> ~/.bashrc
+source ~/.bashrc
+
+# Create local shared directories
+su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/BR2_DL"
+su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/thingino_output"
+echo "lxc.mount.entry = /home/$SUDO_USER/BR2_DL mnt/BR2_DL none bind,create=dir 0 0" >> /var/lib/lxc/thingino-development/config
+echo "lxc.mount.entry = /home/$SUDO_USER/thingino_output home/thingino-dev/output none bind,create=dir 0 0" >> /var/lib/lxc/thingino-development/config
+
+# Restart container
+lxc-stop thingino-development
+lxc-start thingino-development
+
+# Ready!
+
+echo -e "\nLXC container setup is complete... WELCOME TO THINGINO-DEVELOPMENT.  \n\nUse 'attach-thingino' to attach to your container at anytime.\n"
+echo -e "Attaching you to your "thingino-development" container...\n"
+
+echo "  \\   _______ _     _ _____ __   _  ______ _____ __   _  _____"
+echo "  )\\     |    |_____|   |   | \  | |  ____   |   | \  | |     |"
+echo " (  /    |    |     | __|__ |  \_| |_____| __|__ |  \_| |_____|"
+echo " / /"
+echo "    "
+
 lxc-attach -n thingino-development -- su - thingino-dev
+
+
