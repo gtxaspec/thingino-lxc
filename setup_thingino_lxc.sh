@@ -70,7 +70,7 @@ sleep 5
 
 # Update and install necessary packages
 lxc-attach -n thingino-development -- apt-get update
-lxc-attach -n thingino-development -- apt-get install -y --no-install-recommends --no-install-suggests build-essential bc bison cpio curl file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano sudo xterm vim whiptail figlet toilet toilet-fonts locales ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt
+lxc-attach -n thingino-development -- apt-get install -y --no-install-recommends --no-install-suggests build-essential bc bison cpio curl file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano sudo xterm vim whiptail figlet toilet toilet-fonts locales ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk
 lxc-attach -n thingino-development -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
 
 # Add a new user without a password
