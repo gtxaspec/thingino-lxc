@@ -2,8 +2,8 @@
 
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
-VERSION=0.12
-PACKAGES="build-essential bc bison cpio curl file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano sudo xterm vim whiptail figlet toilet toilet-fonts locales ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk"
+VERSION=0.13
+PACKAGES="build-essential bc bison cpio curl file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano xterm whiptail figlet toilet toilet-fonts ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -16,7 +16,7 @@ install_lxc() {
 	echo "Updating package lists..."
 	sudo apt-get update
 	echo "Installing LXC..."
-	sudo apt-get install lxc
+	sudo apt-get install -y --no-install-recommends --no-install-suggests lxc
 }
 
 # Determine the architecture
@@ -83,16 +83,16 @@ lxc-start -n $CONTAINER_NAME || { echo "Failed to start the container. Exiting."
 echo "Starting container..."
 sleep 5
 
-# Update and install necessary packages
-lxc-attach -n $CONTAINER_NAME -- apt-get update
-lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
-lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
-
 # Add a new user without a password
 lxc-attach -n $CONTAINER_NAME -- adduser $CONTAINER_USER --disabled-password --gecos ""
 
 # Create a new sudoers file for $CONTAINER_USER allowing passwordless sudo
 echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_NAME -- tee /etc/sudoers.d/$CONTAINER_USER
+
+# Update and install necessary packages
+lxc-attach -n $CONTAINER_NAME -- apt-get update
+lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
+lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
 
 # Clone necessary repositories
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --recurse-submodules https://github.com/themactep/thingino-firmware"
@@ -127,15 +127,12 @@ lxc-start $CONTAINER_NAME
 
 # Ready!
 
-echo -e "\nLXC container setup is complete... WELCOME TO THINGINO-DEVELOPMENT.  \n\nUse 'attach-thingino' to attach to your container at anytime.\n"
+echo -e "\nLXC container setup is complete... WELCOME TO THINGINO-DEVELOPMENT.  \n\nUse 'attach-thingino' to return to your container at anytime.\n"
 echo -e "Attaching you to your "$CONTAINER_NAME" container...\n"
 
-echo "  \\   _______ _     _ _____ __   _  ______ _____ __   _  _____"
-echo "  )\\     |    |_____|   |   | \  | |  ____   |   | \  | |     |"
-echo " (  /    |    |     | __|__ |  \_| |_____| __|__ |  \_| |_____|"
-echo " / /"
-echo "    "
+echo -e "\e[38;5;208m  \\\   \e[38;5;231m_______ _     _ \e[38;5;208m_____ __   _  ______ \e[38;5;231m_____ __   _  _____"
+echo -e "\e[38;5;208m  )\\\  \e[38;5;231m   |    |_____| \e[38;5;208m  |   | \  | |  ____ \e[38;5;231m  |   | \  | |     |"
+echo -e "\e[38;5;208m (  /  \e[38;5;231m  |    |     | \e[38;5;208m__|__ |  \_| |_____| \e[38;5;231m__|__ |  \_| |_____|"
+echo -e "\e[38;5;208m / /\n"
 
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER
-
-
