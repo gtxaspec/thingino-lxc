@@ -3,7 +3,7 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 VERSION=0.13
-PACKAGES="build-essential bc bison cpio curl file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano xterm whiptail figlet toilet toilet-fonts ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk"
+PACKAGES="build-essential bc bison cpio curl dialog file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano xterm whiptail figlet toilet toilet-fonts ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -108,6 +108,7 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
 
 # Update the PATH for the $CONTAINER_USER user
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export PATH=/usr/bin/ccache:\$PATH:/home/$CONTAINER_USER/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/bin/' >> ~/.bashrc"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export QEMU_LD_PREFIX=/home/$CONTAINER_USER/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/mipsel-thingino-linux-musl/sysroot' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export BR2_DL_DIR=/mnt/BR2_DL' >> ~/.bashrc"
 
 # Add an alias for the host's user to start the container
