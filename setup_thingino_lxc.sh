@@ -2,8 +2,8 @@
 
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
-VERSION=0.13
-PACKAGES="build-essential bc bison cpio curl dialog file flex git libncurses-dev make rsync unzip wget whiptail gcc gcc-mipsel-linux-gnu lzop u-boot-tools ca-certificates ccache nano xterm whiptail figlet toilet toilet-fonts ssh cpio apt-utils apt-transport-https patchelf qemu-user qemu-user-binfmt gawk"
+VERSION=0.14
+PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make nano patchelf qemu-user qemu-user-binfmt rsync ssh toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -94,14 +94,14 @@ lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
 
+# Download and extract the toolchain
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain/thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; tar -xf thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; cd ~/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
+
 # Clone necessary repositories
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --recurse-submodules https://github.com/themactep/thingino-firmware"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/u-boot-ingenic"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/themactep/ingenic-sdk"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/themactep/thingino-webui"
-
-# Download and extract the toolchain
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain/thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; tar -xf thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; cd ~/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
 
 # Set the ccache size
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
