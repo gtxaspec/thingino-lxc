@@ -126,6 +126,8 @@ echo "lxc.mount.entry = /home/$SUDO_USER/thingino_output home/$CONTAINER_USER/ou
 lxc-stop $CONTAINER_NAME
 lxc-start $CONTAINER_NAME
 
+source ~/.bashrc
+
 # Ready!
 
 echo -e "\nLXC container setup is complete... WELCOME TO THINGINO-DEVELOPMENT.  \n\nUse 'attach-thingino' to return to your container at anytime.\n"
