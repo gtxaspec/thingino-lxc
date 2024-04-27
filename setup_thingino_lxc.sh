@@ -84,7 +84,7 @@ echo "Starting container..."
 sleep 5
 
 # Add a new user without a password
-lxc-attach -n $CONTAINER_NAME -- adduser $CONTAINER_USER --disabled-password --gecos ""
+lxc-attach -n $CONTAINER_NAME -- adduser $CONTAINER_USER --uid $SUDO_UID --disabled-password --gecos ""
 
 # Create a new sudoers file for $CONTAINER_USER allowing passwordless sudo
 echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_NAME -- tee /etc/sudoers.d/$CONTAINER_USER
