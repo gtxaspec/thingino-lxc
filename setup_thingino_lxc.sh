@@ -101,10 +101,10 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githu
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain/thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; tar -xf thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; cd ~/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
 
 # Clone necessary repositories
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --recurse-submodules https://github.com/themactep/thingino-firmware"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/u-boot-ingenic"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/themactep/ingenic-sdk"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/themactep/thingino-webui"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 --recurse-submodules https://github.com/themactep/thingino-firmware"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/u-boot-ingenic"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/themactep/ingenic-sdk"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/themactep/thingino-webui"
 
 # Set the ccache size
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
