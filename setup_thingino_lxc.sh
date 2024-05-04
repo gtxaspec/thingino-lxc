@@ -3,7 +3,7 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 VERSION=0.14
-PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make nano patchelf qemu-user qemu-user-binfmt rsync ssh toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
+PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make mc nano patchelf qemu-user qemu-user-binfmt rsync ssh toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -93,6 +93,9 @@ echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_N
 lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
+
+# Download Additional tools script
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/additional-tools-setup.sh -P ~/; chmod +x ~/additional-tools-setup.sh"
 
 # Download and extract the toolchain
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain/thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; tar -xf thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; cd ~/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
