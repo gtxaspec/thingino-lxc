@@ -2,8 +2,11 @@
 
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
-VERSION=0.14
-PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make mc nano patchelf qemu-user qemu-user-binfmt rsync ssh toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
+CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
+VERSION=0.16
+PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog \
+file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make mc nano patchelf qemu-user \
+qemu-user-binfmt rsync ssh tftpd-hpa toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -25,11 +28,11 @@ case $arch in
 	x86_64)
 		lxc_arch="amd64"
 		;;
-	aarch64)
-		lxc_arch="arm64"
-		;;
+#	aarch64)
+#		lxc_arch="arm64"
+#		;;
 	*)
-		echo "Unsupported architecture: $arch.  amd64/arm64 only."
+		echo "Unsupported architecture: $arch.  amd64 only."
 		exit 1
 		;;
 esac
@@ -70,8 +73,14 @@ sleep 10
 echo "Creating LXC container with architecture: $lxc_arch"
 lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release bookworm --arch $lxc_arch
 
-# Unprivileged users can't create apparmor namespaces...
-sed -i '/^lxc.apparmor.profile = generated/c\lxc.apparmor.profile = unconfined' /var/lib/lxc/$CONTAINER_NAME/config
+# Adjust container config
+if grep -q '^lxc.apparmor.profile = generated' "$CONTAINER_CONFIG_FILE"; then
+    sed -i 's/^lxc.apparmor.profile = generated/lxc.apparmor.profile = unconfined/' "$CONTAINER_CONFIG_FILE"
+else
+    if ! grep -q '^lxc.apparmor.profile' "$CONTAINER_CONFIG_FILE"; then
+        echo 'lxc.apparmor.profile = unconfined' >> "$CONTAINER_CONFIG_FILE"
+    fi
+fi
 
 #Set container DNS
 echo -e "DNS=8.8.8.8\nFallbackDNS=1.1.1.1" >> /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/systemd/resolved.conf
@@ -86,13 +95,22 @@ sleep 5
 # Add a new user without a password
 lxc-attach -n $CONTAINER_NAME -- adduser $CONTAINER_USER --uid $SUDO_UID --disabled-password --gecos ""
 
+############### USER ADDED ##########################################################################################
+
 # Create a new sudoers file for $CONTAINER_USER allowing passwordless sudo
 echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_NAME -- tee /etc/sudoers.d/$CONTAINER_USER
+
+# Adjust PATH for system
+lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i '/^if \[ \"\$(id -u)\" -eq 0 \]; then$/,/^fi$/c\PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\n' /etc/profile"
 
 # Update and install necessary packages
 lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
+
+#Setup tftpd
+lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i 's/^TFTP_DIRECTORY=\"\/srv\/tftp\"$/TFTP_DIRECTORY=\"\/home\/$CONTAINER_USER\/tftp\"/' /etc/default/tftpd-hpa"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/tftp"
 
 # Download Additional tools script
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/additional-tools-setup.sh -P ~/; chmod +x ~/additional-tools-setup.sh"
@@ -101,10 +119,9 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githu
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain/thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; tar -xf thingino-toolchain_xburst1_musl_gcc13-linux-mipsel.tar.gz; cd ~/toolchain/mipsel-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
 
 # Clone necessary repositories
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 --recurse-submodules https://github.com/themactep/thingino-firmware"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/themactep/thingino-firmware"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/u-boot-ingenic"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/themactep/ingenic-sdk"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/themactep/thingino-webui"
 
 # Set the ccache size
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
@@ -122,8 +139,8 @@ fi
 # Create local shared directories
 su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/BR2_DL"
 su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/thingino_output"
-echo "lxc.mount.entry = /home/$SUDO_USER/BR2_DL mnt/BR2_DL none bind,create=dir 0 0" >> /var/lib/lxc/$CONTAINER_NAME/config
-echo "lxc.mount.entry = /home/$SUDO_USER/thingino_output home/$CONTAINER_USER/output none bind,create=dir 0 0" >> /var/lib/lxc/$CONTAINER_NAME/config
+echo "lxc.mount.entry = /home/$SUDO_USER/BR2_DL mnt/BR2_DL none bind,create=dir 0 0" >> $CONTAINER_CONFIG_FILE
+echo "lxc.mount.entry = /home/$SUDO_USER/thingino_output home/$CONTAINER_USER/output none bind,create=dir 0 0" >> $CONTAINER_CONFIG_FILE
 
 # Restart container
 lxc-stop $CONTAINER_NAME
