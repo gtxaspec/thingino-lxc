@@ -3,9 +3,9 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
-VERSION=0.16
+VERSION=0.17
 PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog \
-file figlet flex gawk gcc gcc-mipsel-linux-gnu git libncurses-dev lzop make mc nano patchelf qemu-user \
+file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf qemu-user \
 qemu-user-binfmt rsync ssh tftpd-hpa toilet toilet-fonts u-boot-tools unzip wget whiptail xterm"
 
 # Check if the script is running as root
@@ -71,7 +71,7 @@ sleep 10
 
 # Create a new LXC container
 echo "Creating LXC container with architecture: $lxc_arch"
-lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release bookworm --arch $lxc_arch
+lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release trixie --arch $lxc_arch
 
 # Adjust container config
 if grep -q '^lxc.apparmor.profile = generated' "$CONTAINER_CONFIG_FILE"; then
