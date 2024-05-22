@@ -1,25 +1,16 @@
-**Start Developing with Thingino Using LXC**
+## Start Developing with Thingino Using LXC
 
 Are you looking to start development with Thingino but worried about cluttering your system with additional software? An efficient solution is to utilize an LXC container. This approach gives you a fully operational Debian system contained within a virtual environment, already set up for your development needs. LXC serves as a lightweight alternative to Docker and is quite straightforward to use, especially if you're accustomed to Debian-based systems.
 
 ### Getting Started with LXC
 
-**1. Install LXC:**  
-If you're on a Debian-based system (like Ubuntu), installing LXC is straightforward. Open your terminal and execute the following command:
-
-```bash
-apt install lxc
-```
-
-This command installs LXC, the platform we'll use to create and manage our isolated development environments.
-
-**2. Set Up Your Development Environment:**  
-Once LXC is installed, you can prepare your Thingino development environment. We've made this easy with a prepared setup script, which automates the creation and configuration of a new container specifically for Thingino development.
+**Set Up Your Development Environment:**
+We've made installation easy with a prepared setup script, which automates the creation and configuration of a new container specifically for Thingino development. This script will prompt you to install LXC (if not installed), the platform we'll use to create and manage our isolated development environments.  Once LXC is installed, you can prepare your Thingino development environment.
 
 Download and execute the setup script by entering these commands in your terminal (ensure you're in the directory where you wish to download the script):
 
 ```bash
-wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/setup_thingino_lxc.sh -O setup_thingino_lxc.sh
+git clone https://github.com/gtxaspec/thingino-lxc && cd thingino-lxc
 sudo bash setup_thingino_lxc.sh
 ```
 
@@ -31,28 +22,29 @@ The script will automatically attach to the container after installation, droppi
 
 Whenever you're ready to start working, accessing your dedicated Thingino environment is simple:
 
-**1. Open Your Terminal:**  
+**1. Open Your Terminal:**
 Launch your terminal to begin.
 
-**2. Attach to Your Container:**  
+**2. Attach to Your Container:**
 Enter the following command to access your development environment:
 
 ```bash
-sudo lxc-attach -n thingino-development -- su - thingino-dev
+attach-thingino
 ```
-
-This command performs the following actions:
-- `sudo`: Runs the following command with administrative privileges, necessary for LXC container management.
-- `lxc-attach -n thingino-development`: Connects you to the 'thingino-development' container.
-- `-- su - thingino-dev`: Switches to the 'thingino-dev' user account within the container, where your development setup resides.
 
 By running this command, you'll be placed directly into your Thingino development workspace inside the container, where you can code, build, and test within an isolated and dedicated environment.
 
 **Exiting the Container**
 
-To finish your session and return to your host system's command line, type `exit` and press Enter. This command logs you out from the 'thingino-dev' user. If you're still inside the container, typing `exit` again will disconnect you from it.
+To finish your session and return to your host system's command line, type `exit` and press Enter. This command logs you out from the 'dev' user. If you're still inside the container, typing `exit` again will disconnect you from it.
 
 Remember, your LXC container retains its state between sessions, allowing you to pick up right where you left off by reattaching using the same command.
+
+Installation Demonstration Video:
+
+https://github.com/themactep/thingino-firmware/assets/12115272/f50f91c6-338b-4eaf-ac51-0a7e3248fb3b
+
+---
 
 ### Benefits of Using Containers for Development
 
