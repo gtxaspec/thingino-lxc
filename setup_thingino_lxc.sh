@@ -159,3 +159,5 @@ echo -e "\e[38;5;208m (  /  \e[38;5;231m  |    |     | \e[38;5;208m__|__ |  \_| 
 echo -e "\e[38;5;208m / /\n"
 
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER
+
+echo -e "Please log out and log back in to fully complete the installation!"
