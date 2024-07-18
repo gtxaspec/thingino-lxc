@@ -71,7 +71,7 @@ sleep 10
 
 # Create a new LXC container
 echo "Creating LXC container with architecture: $lxc_arch"
-lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release trixie --arch $lxc_arch
+lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release bookworm --arch $lxc_arch
 
 # Adjust container config
 if grep -q '^lxc.apparmor.profile = generated' "$CONTAINER_CONFIG_FILE"; then
