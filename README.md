@@ -44,6 +44,20 @@ Installation Demonstration Video:
 
 https://github.com/themactep/thingino-firmware/assets/12115272/f50f91c6-338b-4eaf-ac51-0a7e3248fb3b
 
+### Setting Up with a Proxmox Container
+
+If you're using Proxmox as your virtualization platform, we've created a script to simplify the development setup process. This script is designed for users who already have a Proxmox LXC container configured. It automates the configuration of your container environment for Thingino development by installing all necessary dependencies, tools, and repositories directly into the Proxmox container.
+
+To run the script, use the following command:
+
+```bash
+sudo ./setup_prox_container.sh
+```
+
+Make sure to run the script using `sudo` and ensure you have at least 5 GB of free space available. The script is compatible with Debian 12 or 13 containers and will download the required repositories for Thingino development.
+
+By running this script inside a Proxmox container, you can quickly set up a fully operational Thingino development environment without manual intervention. Simply download and execute the script within a Debian 12 or 13 container, and it will handle the rest, ensuring your development environment is ready in just a few steps.
+
 ---
 
 ### Benefits of Using Containers for Development
