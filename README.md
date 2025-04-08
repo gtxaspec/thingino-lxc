@@ -14,7 +14,11 @@ git clone https://github.com/gtxaspec/thingino-lxc && cd thingino-lxc
 sudo bash setup_thingino_lxc.sh
 ```
 
-This script will automatically generate an LXC container named 'thingino-development' and install all the necessary tools and software required for Thingino development, including various thingino related repositories.
+This script will automatically generate an LXC container named 'thingino-development' and install all the necessary tools and software required for Thingino development, including various thingino related repositories.  
+
+**On the host, only the LXC package is required for installation. If LXC is not installed, the installer will automatically detect this and prompt you to install it.**  
+
+As a security best practice, please feel free to inspect the script contents before execution to verify its actions and ensure you're comfortable with the changes it will make to your system.  
 
 The script will automatically attach to the container after installation, dropping you to the command prompt.  You are now ready to start developing!
 
