@@ -4,9 +4,9 @@ CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
 VERSION=0.18
-PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio curl dialog \
+PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio cmake curl dialog \
 file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf qemu-user \
-qemu-user-binfmt rsync ssh tftpd-hpa toilet toilet-fonts tree u-boot-tools unzip wget whiptail xterm"
+qemu-user-binfmt rsync ssh tftpd-hpa toilet toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
