@@ -22,6 +22,26 @@ As a security best practice, please feel free to inspect the script contents bef
 
 The script will automatically attach to the container after installation, dropping you to the command prompt.  You are now ready to start developing!
 
+### Shared Directory for Host-Container Communication
+
+The setup script creates a shared directory at `$HOME/thingino-output` on the host system. This directory serves multiple purposes:
+
+- **Data Transfer:** Allows you to easily pass data between the host and the container
+- **Firmware Access:** Compiled firmware will be accessible in this directory on the host system
+- **Persistent Storage:** Files placed here persist even when the container is stopped or restarted
+
+This shared directory provides a convenient way to access your build outputs and transfer files without needing to copy them manually between the host and container.
+
+### Additional Development Tools
+
+The container includes a script for installing additional development tools that may be useful for firmware analysis and development. Inside the container, you can run:
+
+```bash
+scripts/additional-tools.sh
+```
+
+This script will compile and install additional tools like binwalk, which can be helpful for firmware analysis and reverse engineering tasks.
+
 ### Accessing Your Development Environment
 
 Whenever you're ready to start working, accessing your dedicated Thingino environment is simple:

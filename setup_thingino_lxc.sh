@@ -3,10 +3,11 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
-VERSION=0.18
-PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cpio cmake curl dialog \
-file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf qemu-user \
-qemu-user-binfmt rsync ssh tftpd-hpa toilet toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
+VERSION=0.25
+PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
+file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf \
+qemu-user qemu-user-binfmt rsync software-properties-common ssh tftpd-hpa toilet \
+toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
@@ -64,7 +65,7 @@ if lxc-info -n $CONTAINER_NAME &>/dev/null; then
 fi
 
 echo "Version $VERSION"
-echo -e "This script will setup an LXC debian 12 container tailored for thingino-firmware development  \n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
+echo -e "This script will setup an LXC debian 12 container tailored for thingino-firmware development, and will install \nany required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
 echo "Press Ctrl-C to exit now."
 
 sleep 10
@@ -104,16 +105,18 @@ echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_N
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i '/^if \[ \"\$(id -u)\" -eq 0 \]; then$/,/^fi$/c\PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\n' /etc/profile"
 
 # Update and install necessary packages
+lxc-attach -n $CONTAINER_NAME -- apt-add-repository --component non-free
 lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
-lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
+lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall -y --no-install-recommends --no-install-suggests \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
 
 #Setup tftpd
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i 's/^TFTP_DIRECTORY=\"\/srv\/tftp\"$/TFTP_DIRECTORY=\"\/home\/$CONTAINER_USER\/tftp\"/' /etc/default/tftpd-hpa"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/tftp"
 
 # Download Additional tools script
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/additional-tools-setup.sh -P ~/; chmod +x ~/additional-tools-setup.sh"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/scripts"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/resource/additional-tools-setup.sh -P ~/scripts; chmod +x ~/scripts/additional-tools-setup.sh"
 
 # Download and extract the toolchain
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain-x86_64/thingino-toolchain-x86_64_xburst1_musl_gcc14-linux-mipsel.tar.gz; mkdir mipsel-xburst1-thingino-linux-musl_sdk-buildroot;tar -xf thingino-toolchain-x86_64_xburst1_musl_gcc14-linux-mipsel.tar.gz -C mipsel-xburst1-thingino-linux-musl_sdk-buildroot --strip-components=1; cd ~/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
@@ -148,9 +151,9 @@ fi
 
 # Create local shared directories
 su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/BR2_DL"
-su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/thingino_output"
+su $SUDO_USER - bash -c "mkdir -p /home/$SUDO_USER/thingino-output"
 echo "lxc.mount.entry = /home/$SUDO_USER/BR2_DL mnt/BR2_DL none bind,create=dir 0 0" >> $CONTAINER_CONFIG_FILE
-echo "lxc.mount.entry = /home/$SUDO_USER/thingino_output home/$CONTAINER_USER/output none bind,create=dir 0 0" >> $CONTAINER_CONFIG_FILE
+echo "lxc.mount.entry = /home/$SUDO_USER/thingino-output home/$CONTAINER_USER/output none bind,create=dir 0 0" >> $CONTAINER_CONFIG_FILE
 
 # Restart container
 lxc-stop $CONTAINER_NAME
@@ -172,4 +175,4 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo -e \"ls /home/dev
 
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER
 
-echo -e "Please log out and log back in to fully complete the installation!"
+echo -e "Installation complete!"
