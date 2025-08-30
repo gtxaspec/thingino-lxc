@@ -18,7 +18,7 @@ This script will automatically generate an LXC container named 'thingino-develop
 
 **On the host, only the LXC package is required for installation. If LXC is not installed, the installer will automatically detect this and prompt you to install it.**  
 
-As a security best practice, please feel free to inspect the script contents before execution to verify its actions and ensure you're comfortable with the changes it will make to your system.  
+As a security best practice, please feel free to inspect the script contents before execution to verify their actions and ensure you're comfortable with the changes it will make to your system.  
 
 The script will automatically attach to the container after installation, dropping you to the command prompt.  You are now ready to start developing!
 

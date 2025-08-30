@@ -3,10 +3,10 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
-VERSION=0.25
+VERSION=0.30
 PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
 file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf \
-qemu-user qemu-user-binfmt rsync software-properties-common ssh tftpd-hpa toilet \
+qemu-user qemu-user-binfmt rsync ssh tftpd-hpa toilet \
 toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
 # Check if the script is running as root
@@ -65,14 +65,14 @@ if lxc-info -n $CONTAINER_NAME &>/dev/null; then
 fi
 
 echo "Version $VERSION"
-echo -e "This script will setup an LXC debian 12 container tailored for thingino-firmware development, and will install \nany required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
+echo -e "This script will setup an LXC debian 13 (trixie) container tailored for thingino-firmware development, and will install \nall required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
 echo "Press Ctrl-C to exit now."
 
 sleep 10
 
 # Create a new LXC container
 echo "Creating LXC container with architecture: $lxc_arch"
-lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release bookworm --arch $lxc_arch
+lxc-create -t download -n $CONTAINER_NAME -- --dist debian --release trixie --arch $lxc_arch
 
 # Adjust container config
 if grep -q '^lxc.apparmor.profile = generated' "$CONTAINER_CONFIG_FILE"; then
@@ -105,7 +105,7 @@ echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_N
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i '/^if \[ \"\$(id -u)\" -eq 0 \]; then$/,/^fi$/c\PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\n' /etc/profile"
 
 # Update and install necessary packages
-lxc-attach -n $CONTAINER_NAME -- apt-add-repository --component non-free
+lxc-attach -n $CONTAINER_NAME -- sed -i 's/main contrib$/main contrib non-free non-free-firmware/g' /etc/apt/sources.list
 lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall -y --no-install-recommends --no-install-suggests \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
