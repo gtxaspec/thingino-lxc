@@ -3,7 +3,7 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
-VERSION=0.30
+VERSION=0.31
 PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
 file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf \
 qemu-user qemu-user-binfmt rsync ssh tftpd-hpa toilet \
@@ -64,9 +64,10 @@ if lxc-info -n $CONTAINER_NAME &>/dev/null; then
     exit 1
 fi
 
-echo "Version $VERSION"
-echo -e "This script will setup an LXC debian 13 (trixie) container tailored for thingino-firmware development, and will install \nall required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for development! ***\n\nStarting in 10 seconds..."
-echo "Press Ctrl-C to exit now."
+clear
+echo "thingino-lxc setup version $VERSION"
+echo -e "\nThis script will setup an LXC debian 13 (trixie) container tailored for thingino-firmware development, and will install all required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for required development tools and sources! ***\n\nStarting in 10 seconds..."
+echo -e "Press Ctrl-C to exit now.\n"
 
 sleep 10
 
@@ -124,17 +125,17 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd
 
 # Clone necessary repositories
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir repo"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/themactep/thingino-firmware repo/thingino-firmware"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/u-boot-ingenic repo/ingenic-u-boot-xburst1"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/ingenic-u-boot-xburst2 -b t40 repo/ingenic-u-boot-xburst2-t40"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/ingenic-u-boot-xburst2 -b t41 repo/ingenic-u-boot-xburst2-t41"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/themactep/ingenic-sdk repo/ingenic-sdk"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/ingenic-motor repo/ingenic-motor"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/prudynt-t repo/prudynt-t"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/ingenic-musl repo/ingenic-musl"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/thingino-linux -b ingenic-t31 repo/thingino-linux-3-10-14-t31"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/thingino-linux -b ingenic-t40 repo/thingino-linux-4-4-94-t40"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --depth 1 https://github.com/gtxaspec/thingino-linux -b ingenic-t41-4.4.94 repo/thingino-linux-4-4-94-t41"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone --recurse-submodules --shallow-submodules https://github.com/themactep/thingino-firmware repo/thingino-firmware"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/u-boot-ingenic repo/ingenic-u-boot-xburst1"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/ingenic-u-boot-xburst2 -b t40 repo/ingenic-u-boot-xburst2-t40"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/ingenic-u-boot-xburst2 -b t41 repo/ingenic-u-boot-xburst2-t41"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/themactep/ingenic-sdk repo/ingenic-sdk"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/ingenic-motor repo/ingenic-motor"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/prudynt-t repo/prudynt-t"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/ingenic-musl repo/ingenic-musl"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/thingino-linux -b ingenic-t31 repo/thingino-linux-3-10-14-t31"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/thingino-linux -b ingenic-t40 repo/thingino-linux-4-4-94-t40"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "git clone https://github.com/gtxaspec/thingino-linux -b ingenic-t41-4.4.94 repo/thingino-linux-4-4-94-t41"
 
 # Set the ccache size
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
@@ -143,6 +144,7 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export PATH=/usr/bin/ccache:\$PATH:/home/$CONTAINER_USER/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/bin/' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export QEMU_LD_PREFIX=/home/$CONTAINER_USER/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/mipsel-thingino-linux-musl/sysroot' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export BR2_DL_DIR=/mnt/BR2_DL' >> ~/.bashrc"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'alias install-additional-tools=\"\$HOME/scripts/additional-tools-setup.sh\"' >> ~/.bashrc"
 
 # Add an alias for the host's user to start the container
 if ! grep -q "alias attach-thingino=" /home/$SUDO_USER/.bashrc; then
@@ -170,6 +172,7 @@ echo -e "\e[38;5;208m  \\\   \e[38;5;231m_______ _     _ \e[38;5;208m_____ __   
 echo -e "\e[38;5;208m  )\\\  \e[38;5;231m   |    |_____| \e[38;5;208m  |   | \  | |  ____ \e[38;5;231m  |   | \  | |     |"
 echo -e "\e[38;5;208m (  /  \e[38;5;231m  |    |     | \e[38;5;208m__|__ |  \_| |_____| \e[38;5;231m__|__ |  \_| |_____|"
 echo -e "\e[38;5;208m / /\n"
+echo -e "\e[0mTo install additional tools (binwalk, etc.), run: \e[1minstall-additional-tools\e[0m\n"
 
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo -e \"ls /home/dev\";ls;echo -n \"ls \";tree -L 1 repo/"
 

@@ -14,13 +14,38 @@ git clone https://github.com/gtxaspec/thingino-lxc && cd thingino-lxc
 sudo bash setup_thingino_lxc.sh
 ```
 
-This script will automatically generate an LXC container named 'thingino-development' and install all the necessary tools and software required for Thingino development, including various thingino related repositories.  
+This script will automatically generate an LXC container named 'thingino-development' and install all the necessary tools and software required for Thingino development, including various thingino related repositories.
 
-**On the host, only the LXC package is required for installation. If LXC is not installed, the installer will automatically detect this and prompt you to install it.**  
+**On the host, only the LXC package is required for installation. If LXC is not installed, the installer will automatically detect this and prompt you to install it.**
 
-As a security best practice, please feel free to inspect the script contents before execution to verify their actions and ensure you're comfortable with the changes it will make to your system.  
+As a security best practice, please feel free to inspect the script contents before execution to verify their actions and ensure you're comfortable with the changes it will make to your system.
 
 The script will automatically attach to the container after installation, dropping you to the command prompt.  You are now ready to start developing!
+
+### Repositories and Toolchains Downloaded During Setup
+
+For transparency and your convenience, the setup script automatically downloads and installs the following components:
+
+**Toolchains:**
+- **mipsel-xburst1-thingino-linux-musl** - GCC 14 cross-compilation toolchain for XBurst1 SoCs
+- **mipsel-xburst2-thingino-linux-musl** - GCC 14 cross-compilation toolchain for XBurst2 SoCs
+
+Toolchains are installed in the `~/toolchain/` directory.
+
+**Repositories:**
+- **thingino-firmware** - Main Thingino firmware repository
+- **ingenic-u-boot-xburst1** - U-Boot for XBurst1 SoCs
+- **ingenic-u-boot-xburst2-t40** - U-Boot for T40 SoCs
+- **ingenic-u-boot-xburst2-t41** - U-Boot for T41 SoCs
+- **ingenic-sdk** - Ingenic SDK
+- **ingenic-motor** - Motor control support
+- **prudynt-t** - Prudynt video streaming application
+- **ingenic-musl** - Musl libc for Ingenic platforms
+- **thingino-linux-3-10-14-t31** - Linux kernel for T31
+- **thingino-linux-4-4-94-t40** - Linux kernel for T40
+- **thingino-linux-4-4-94-t41** - Linux kernel for T41
+
+All repositories are cloned into the `~/repo/` directory within the container.
 
 ### Shared Directory for Host-Container Communication
 
@@ -37,10 +62,10 @@ This shared directory provides a convenient way to access your build outputs and
 The container includes a script for installing additional development tools that may be useful for firmware analysis and development. Inside the container, you can run:
 
 ```bash
-scripts/additional-tools.sh
+install-additional-tools
 ```
 
-This script will compile and install additional tools like binwalk, which can be helpful for firmware analysis and reverse engineering tasks.
+This script will compile and install additional tools like binwalk, which can be helpful for firmware analysis and reverse engineering tasks. If you've already run the installation, running the command again will inform you that the tools are already installed.
 
 ### Accessing Your Development Environment
 
@@ -78,7 +103,7 @@ To run the script, use the following command:
 sudo ./setup_prox_container.sh
 ```
 
-Make sure to run the script using `sudo` and ensure you have at least 5 GB of free space available. The script is compatible with Debian 12 or 13 containers and will download the required repositories for Thingino development.
+Make sure to run the script using `sudo` and ensure you have at least 10 GB of free space available. The script is compatible with Debian 12 or 13 containers and will download the required repositories for Thingino development.
 
 By running this script inside a Proxmox container, you can quickly set up a fully operational Thingino development environment without manual intervention. Simply download and execute the script within a Debian 12 or 13 container, and it will handle the rest, ensuring your development environment is ready in just a few steps.
 
