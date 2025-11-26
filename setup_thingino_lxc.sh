@@ -28,12 +28,14 @@ arch=$(uname -m)
 case $arch in
 	x86_64)
 		lxc_arch="amd64"
+		toolchain_arch="x86_64"
 		;;
-#	aarch64)
-#		lxc_arch="arm64"
-#		;;
+	aarch64)
+		lxc_arch="arm64"
+		toolchain_arch="aarch64"
+		;;
 	*)
-		echo "Unsupported architecture: $arch.  amd64 only."
+		echo "Unsupported architecture: $arch.  amd64 and aarch64 only."
 		exit 1
 		;;
 esac
@@ -120,8 +122,8 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/scripts"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "wget https://raw.githubusercontent.com/gtxaspec/thingino-lxc/master/resource/additional-tools-setup.sh -P ~/scripts; chmod +x ~/scripts/additional-tools-setup.sh"
 
 # Download and extract the toolchain
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain-x86_64/thingino-toolchain-x86_64_xburst1_musl_gcc14-linux-mipsel.tar.gz; mkdir mipsel-xburst1-thingino-linux-musl_sdk-buildroot;tar -xf thingino-toolchain-x86_64_xburst1_musl_gcc14-linux-mipsel.tar.gz -C mipsel-xburst1-thingino-linux-musl_sdk-buildroot --strip-components=1; cd ~/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
-lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain-x86_64/thingino-toolchain-x86_64_xburst2_musl_gcc14-linux-mipsel.tar.gz; mkdir mipsel-xburst2-thingino-linux-musl_sdk-buildroot;tar -xf thingino-toolchain-x86_64_xburst2_musl_gcc14-linux-mipsel.tar.gz -C mipsel-xburst2-thingino-linux-musl_sdk-buildroot --strip-components=1; cd ~/toolchain/mipsel-xburst2-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain-$toolchain_arch/thingino-toolchain-${toolchain_arch}_xburst1_musl_gcc14-linux-mipsel.tar.gz; mkdir mipsel-xburst1-thingino-linux-musl_sdk-buildroot;tar -xf thingino-toolchain-${toolchain_arch}_xburst1_musl_gcc14-linux-mipsel.tar.gz -C mipsel-xburst1-thingino-linux-musl_sdk-buildroot --strip-components=1; cd ~/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir ~/toolchain/; cd ~/toolchain/; wget https://github.com/themactep/thingino-firmware/releases/download/toolchain-$toolchain_arch/thingino-toolchain-${toolchain_arch}_xburst2_musl_gcc14-linux-mipsel.tar.gz; mkdir mipsel-xburst2-thingino-linux-musl_sdk-buildroot;tar -xf thingino-toolchain-${toolchain_arch}_xburst2_musl_gcc14-linux-mipsel.tar.gz -C mipsel-xburst2-thingino-linux-musl_sdk-buildroot --strip-components=1; cd ~/toolchain/mipsel-xburst2-thingino-linux-musl_sdk-buildroot/; ./relocate-sdk.sh"
 
 # Clone necessary repositories
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "mkdir repo"
