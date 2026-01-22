@@ -5,7 +5,7 @@ CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
 VERSION=0.32
 PACKAGES="apt-transport-https apt-utils autoconf bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
-file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf \
+file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf python3 \
 qemu-user qemu-user-binfmt rsync ssh tftpd-hpa toilet \
 toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
