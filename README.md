@@ -100,7 +100,7 @@ If you're using Proxmox as your virtualization platform, we've created a script 
 To run the script, use the following command:
 
 ```bash
-sudo ./setup_prox_container.sh
+sudo ./prox_container_setup.sh
 ```
 
 Make sure to run the script using `sudo` and ensure you have at least 10 GB of free space available. The script is compatible with Debian 12 or 13 containers and will download the required repositories for Thingino development.
