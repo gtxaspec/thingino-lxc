@@ -1,6 +1,6 @@
 # No Docker. No Podman. Just *Linux*.
 
-A ready-to-go development environment for [Thingino](https://github.com/themactep/thingino-firmware), powered by LXC, native Linux containerization with no daemons, no runtimes, and no abstraction layers. Just kernel-level isolation that feels like a normal Debian system.
+A ready-to-go development environment for [Thingino](https://github.com/themactep/thingino-firmware), powered by [LXC](https://linuxcontainers.org), native Linux containerization with no daemons, no runtimes, and no abstraction layers. Just kernel-level isolation that feels like a normal Debian system.
 
 **Why LXC?**
 - **Lightweight** - uses a fraction of the resources of a full VM
