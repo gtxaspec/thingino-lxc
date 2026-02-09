@@ -1,38 +1,52 @@
-## Start Developing with Thingino Using LXC
+# No Docker. No Podman. Just *Linux*.
 
-Are you looking to start development with Thingino but worried about cluttering your system with additional software? An efficient solution is to utilize an LXC container. This approach gives you a fully operational Debian system contained within a virtual environment, already set up for your development needs. LXC serves as a lightweight alternative to Docker and is quite straightforward to use, especially if you're accustomed to Debian-based systems.
+A ready-to-go development environment for [Thingino](https://github.com/themactep/thingino-firmware), powered by LXC, native Linux containerization with no daemons, no runtimes, and no abstraction layers. Just kernel-level isolation that feels like a normal Debian system.
 
-### Getting Started with LXC
+**Why LXC?**
+- **Lightweight** - uses a fraction of the resources of a full VM
+- **Isolated** - keeps your host system clean and unaffected
+- **Reproducible** - consistent firmware builds every time
+- **Native** - no container engine required, just the Linux kernel
 
-**Set Up Your Development Environment:**
-We've made installation easy with a prepared setup script, which automates the creation and configuration of a new container specifically for Thingino development. This script will prompt you to install LXC (if not installed), the platform we'll use to create and manage our isolated development environments.  Once LXC is installed, you can prepare your Thingino development environment.
+**Two setup paths:**
+1. **[Standalone LXC](#standalone-lxc-setup)** - run directly on any Linux machine
+2. **[Proxmox](#proxmox-setup)** - use an existing Proxmox LXC container
 
-Download and execute the setup script by entering these commands in your terminal (ensure you're in the directory where you wish to download the script):
+---
+
+## Standalone LXC Setup
+
+Clone the repo and run the setup script on any Linux system:
 
 ```bash
 git clone https://github.com/gtxaspec/thingino-lxc && cd thingino-lxc
 sudo bash setup_thingino_lxc.sh
 ```
 
-This script will automatically generate an LXC container named 'thingino-development' and install all the necessary tools and software required for Thingino development, including various thingino related repositories.
+That's it. The script handles everything:
+- Installs LXC on the host if not already present
+- Creates a Debian container named `thingino-development`
+- Installs all required build tools and dependencies
+- Downloads toolchains and repositories
+- Drops you into the container's shell, ready to build
 
-**On the host, only the LXC package is required for installation. If LXC is not installed, the installer will automatically detect this and prompt you to install it.**
+> **Note:** Only the LXC package is installed on your host. Everything else lives inside the container. As a best practice, inspect the script before running it.
 
-As a security best practice, please feel free to inspect the script contents before execution to verify their actions and ensure you're comfortable with the changes it will make to your system.
+---
 
-The script will automatically attach to the container after installation, dropping you to the command prompt.  You are now ready to start developing!
+## What Gets Installed
 
-### Repositories and Toolchains Downloaded During Setup
+### Toolchains
 
-For transparency and your convenience, the setup script automatically downloads and installs the following components:
+Installed to `~/toolchain/` inside the container:
 
-**Toolchains:**
-- **mipsel-xburst1-thingino-linux-musl** - GCC 14 cross-compilation toolchain for XBurst1 SoCs
-- **mipsel-xburst2-thingino-linux-musl** - GCC 14 cross-compilation toolchain for XBurst2 SoCs
+- **mipsel-xburst1-thingino-linux-musl** - GCC cross-compilation toolchain for XBurst1 SoCs
+- **mipsel-xburst2-thingino-linux-musl** - GCC cross-compilation toolchain for XBurst2 SoCs
 
-Toolchains are installed in the `~/toolchain/` directory.
+### Repositories
 
-**Repositories:**
+Cloned to `~/repo/` inside the container:
+
 - **thingino-firmware** - Main Thingino firmware repository
 - **ingenic-u-boot-xburst1** - U-Boot for XBurst1 SoCs
 - **ingenic-u-boot-xburst2-t40** - U-Boot for T40 SoCs
@@ -45,74 +59,65 @@ Toolchains are installed in the `~/toolchain/` directory.
 - **thingino-linux-4-4-94-t40** - Linux kernel for T40
 - **thingino-linux-4-4-94-t41** - Linux kernel for T41
 
-All repositories are cloned into the `~/repo/` directory within the container.
+---
 
-### Shared Directory for Host-Container Communication
+## Shared Directory
 
-The setup script creates a shared directory at `$HOME/thingino-output` on the host system. This directory serves multiple purposes:
+The setup script creates a shared directory at `$HOME/thingino-output` on your host. Use it for:
 
-- **Data Transfer:** Allows you to easily pass data between the host and the container
-- **Firmware Access:** Compiled firmware will be accessible in this directory on the host system
-- **Persistent Storage:** Files placed here persist even when the container is stopped or restarted
+- **Data Transfer** - move files between host and container
+- **Firmware Access** - compiled firmware appears here automatically
+- **Persistent Storage** - survives container stops and restarts
 
-This shared directory provides a convenient way to access your build outputs and transfer files without needing to copy them manually between the host and container.
+---
 
-### Additional Development Tools
+## Additional Development Tools
 
-The container includes a script for installing additional development tools that may be useful for firmware analysis and development. Inside the container, you can run:
+For firmware analysis and reverse engineering, the container includes an optional tool installer:
 
 ```bash
 install-additional-tools
 ```
 
-This script will compile and install additional tools like binwalk, which can be helpful for firmware analysis and reverse engineering tasks. If you've already run the installation, running the command again will inform you that the tools are already installed.
+This compiles and installs tools like binwalk. Running it again is safe, it will detect previously installed tools.
 
-### Accessing Your Development Environment
+---
 
-Whenever you're ready to start working, accessing your dedicated Thingino environment is simple:
+## Day-to-Day Usage
 
-**1. Open Your Terminal:**
-Launch your terminal to begin.
-
-**2. Attach to Your Container:**
-Enter the following command to access your development environment:
+**Attach to your container:**
 
 ```bash
 attach-thingino
 ```
 
-By running this command, you'll be placed directly into your Thingino development workspace inside the container, where you can code, build, and test within an isolated and dedicated environment.
+You're dropped directly into the Thingino development workspace. Code, build, and test in an isolated environment.
 
-**Exiting the Container**
+**Detach from the container:**
 
-To finish your session and return to your host system's command line, type `exit` and press Enter. This command logs you out from the 'dev' user. If you're still inside the container, typing `exit` again will disconnect you from it.
+Type `exit` to log out of the `dev` user. If still inside the container, type `exit` again to return to your host shell. Your container retains its state between sessions, so you can pick up right where you left off.
 
-Remember, your LXC container retains its state between sessions, allowing you to pick up right where you left off by reattaching using the same command.
+---
 
-Installation Demonstration Video:
+## Demo
+
+Installation demonstration video:
 
 https://github.com/themactep/thingino-firmware/assets/12115272/f50f91c6-338b-4eaf-ac51-0a7e3248fb3b
 
-### Setting Up with a Proxmox Container
+---
 
-If you're using Proxmox as your virtualization platform, we've created a script to simplify the development setup process. This script is designed for users who already have a Proxmox LXC container configured. It automates the configuration of your container environment for Thingino development by installing all necessary dependencies, tools, and repositories directly into the Proxmox container.
+## Proxmox Setup
 
-To run the script, use the following command:
+If you're using Proxmox as your virtualization platform, a dedicated setup script is provided. Run it inside an existing Proxmox LXC container to configure it for Thingino development, no manual setup required.
 
 ```bash
 sudo ./prox_container_setup.sh
 ```
 
-Make sure to run the script using `sudo` and ensure you have at least 10 GB of free space available. The script is compatible with Debian 12 or 13 containers and will download the required repositories for Thingino development.
+**Requirements:**
+- Debian 12 or 13 container
+- At least 10 GB of free space
+- Run with `sudo`
 
-By running this script inside a Proxmox container, you can quickly set up a fully operational Thingino development environment without manual intervention. Simply download and execute the script within a Debian 12 or 13 container, and it will handle the rest, ensuring your development environment is ready in just a few steps.
-
----
-
-### Benefits of Using Containers for Development
-
-- **Isolation:** Keeps your primary operating system clean and unaffected.
-- **Reproducible:** Simplifies the process of replicating or deleting the development environment.
-- **Efficiency:** Containers typically use resources more sparingly than full virtual machines.
-
-Now, you're all set to enjoy hassle-free development with Thingino in a clean, organized LXC environment!
+The script installs all dependencies, toolchains, and repositories directly into your Proxmox container, giving you the same fully configured environment as the standalone setup.
