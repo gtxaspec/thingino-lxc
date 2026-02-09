@@ -9,6 +9,22 @@ file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf python3 
 qemu-user qemu-user-binfmt rsync ssh tftpd-hpa toilet \
 toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
+# Parse command-line arguments
+REINSTALL_FLAG=false
+for arg in "$@"; do
+	case $arg in
+		--reinstall)
+			REINSTALL_FLAG=true
+			shift
+			;;
+		*)
+			echo "Unknown option: $arg"
+			echo "Usage: $0 [--reinstall]"
+			exit 1
+			;;
+	esac
+done
+
 # Check if the script is running as root
 if [[ $(id -u) -ne 0 ]]; then
 	echo "This script must be run with sudo."
@@ -60,10 +76,43 @@ if [ "$installation_needed" = true ]; then
 	fi
 fi
 
+# Function to destroy and remove the container
+destroy_container() {
+	echo "Stopping container '$CONTAINER_NAME'..."
+	lxc-stop -n $CONTAINER_NAME 2>/dev/null || true
+	sleep 2
+	echo "Destroying container '$CONTAINER_NAME'..."
+	lxc-destroy -n $CONTAINER_NAME
+	echo "Container '$CONTAINER_NAME' has been removed."
+}
+
 # Check if the container already exists
 if lxc-info -n $CONTAINER_NAME &>/dev/null; then
-    echo "The container '$CONTAINER_NAME' already exists. Please remove it before running this script again."
-    exit 1
+	if [ "$REINSTALL_FLAG" = true ]; then
+		echo "The container '$CONTAINER_NAME' already exists."
+		read -p "Are you sure you want to DESTROY and REMOVE the existing container and reinstall it? (yes/no) " confirm
+		if [[ $confirm == "yes" ]]; then
+			destroy_container
+		else
+			echo "Reinstallation cancelled. Exiting."
+			exit 1
+		fi
+	else
+		echo "The container '$CONTAINER_NAME' already exists."
+		read -p "Do you want to destroy and remove the existing container and reinstall it? (yes/no) " answer
+		if [[ $answer == "yes" ]]; then
+			read -p "WARNING: This will permanently delete the container and all its data. Type 'yes' again to confirm: " confirm
+			if [[ $confirm == "yes" ]]; then
+				destroy_container
+			else
+				echo "Reinstallation cancelled. Exiting."
+				exit 1
+			fi
+		else
+			echo "Please remove the existing container manually or use the --reinstall flag."
+			exit 1
+		fi
+	fi
 fi
 
 clear
