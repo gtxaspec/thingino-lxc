@@ -138,12 +138,47 @@ fi
 #Set container DNS
 echo -e "DNS=8.8.8.8\nFallbackDNS=1.1.1.1" >> /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/systemd/resolved.conf
 
+# Force apt to use IPv4 (fixes failures on IPv4-only networks)
+mkdir -p /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/apt/apt.conf.d
+echo 'Acquire::ForceIPv4 "true";' > /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/apt/apt.conf.d/99force-ipv4
+
 # Start the container and check for failure
 lxc-start -n $CONTAINER_NAME || { echo "Failed to start the container. Exiting."; exit 1; }
 
-# Wait for the container to start up
+# Wait for the container to start up and verify network connectivity
 echo "Starting container..."
 sleep 5
+
+echo "Checking network connectivity inside the container..."
+RETRIES=12
+for i in $(seq 1 $RETRIES); do
+	if lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1"; then
+		echo "Network is reachable."
+		break
+	fi
+	if [ "$i" -eq "$RETRIES" ]; then
+		echo "ERROR: No network connectivity inside the container after $((RETRIES * 5)) seconds."
+		echo "Please check your host network configuration and ensure the container has internet access."
+		lxc-stop -n $CONTAINER_NAME 2>/dev/null
+		exit 1
+	fi
+	echo "Waiting for network... (attempt $i/$RETRIES)"
+	sleep 5
+done
+
+echo "Checking DNS resolution..."
+if ! lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -c 1 -W 3 deb.debian.org >/dev/null 2>&1"; then
+	echo "WARNING: DNS resolution failed. Attempting to fix..."
+	lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf; echo 'nameserver 1.1.1.1' >> /etc/resolv.conf"
+	if ! lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -c 1 -W 3 deb.debian.org >/dev/null 2>&1"; then
+		echo "ERROR: DNS resolution still failing. Please check your DNS configuration."
+		lxc-stop -n $CONTAINER_NAME 2>/dev/null
+		exit 1
+	fi
+	echo "DNS fixed."
+else
+	echo "DNS is working."
+fi
 
 # Add a new user without a password
 lxc-attach -n $CONTAINER_NAME -- adduser $CONTAINER_USER --uid $SUDO_UID --disabled-password --gecos ""
@@ -156,8 +191,18 @@ echo "$CONTAINER_USER ALL=(ALL) NOPASSWD: ALL" | sudo lxc-attach -n $CONTAINER_N
 # Adjust PATH for system
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "sed -i '/^if \[ \"\$(id -u)\" -eq 0 \]; then$/,/^fi$/c\PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\n' /etc/profile"
 
-# Update and install necessary packages
-lxc-attach -n $CONTAINER_NAME -- sed -i 's/main contrib$/main contrib non-free non-free-firmware/g' /etc/apt/sources.list
+# Update and install necessary packages (multiple mirrors for reliability)
+lxc-attach -n $CONTAINER_NAME -- /bin/bash -c 'cat > /etc/apt/sources.list << SOURCES
+deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware
+
+# Fallback mirrors
+deb http://ftp.us.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://ftp.de.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://ftp.cn.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://ftp.au.debian.org/debian trixie main contrib non-free non-free-firmware
+SOURCES'
 lxc-attach -n $CONTAINER_NAME -- apt-get update
 lxc-attach -n $CONTAINER_NAME -- apt-get install -y --no-install-recommends --no-install-suggests $PACKAGES
 lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "cd /var/lib/dpkg/info/ && apt install --reinstall -y --no-install-recommends --no-install-suggests \$(grep -l 'setcap' * | sed -e 's/\\.[^.]*\$//g' | sort --unique)"
