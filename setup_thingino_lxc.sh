@@ -101,6 +101,7 @@ if lxc-info -n $CONTAINER_NAME &>/dev/null; then
 		echo "The container '$CONTAINER_NAME' already exists."
 		read -p "Do you want to destroy and remove the existing container and reinstall it? (yes/no) " answer
 		if [[ $answer == "yes" ]]; then
+			echo ""
 			read -p "WARNING: This will permanently delete the container and all its data. Type 'yes' again to confirm: " confirm
 			if [[ $confirm == "yes" ]]; then
 				destroy_container
@@ -118,9 +119,9 @@ fi
 clear
 echo "thingino-lxc setup version $VERSION"
 echo -e "\nThis script will setup an LXC debian 13 (trixie) container tailored for thingino-firmware development, and will install all required dependencies inside the container, so network access is required.\n\n*** Make sure you have at least 10GB available storage for required development tools and sources! ***\n\nStarting in 10 seconds..."
-echo -e "Press Ctrl-C to exit now.\n"
+echo -e "Press Ctrl-C to exit, or Enter to continue now.\n"
 
-sleep 10
+read -t 10 -r || true
 
 # Create a new LXC container
 echo "Creating LXC container with architecture: $lxc_arch"
@@ -138,10 +139,6 @@ fi
 #Set container DNS
 echo -e "DNS=8.8.8.8\nFallbackDNS=1.1.1.1" >> /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/systemd/resolved.conf
 
-# Force apt to use IPv4 (fixes failures on IPv4-only networks)
-mkdir -p /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/apt/apt.conf.d
-echo 'Acquire::ForceIPv4 "true";' > /var/lib/lxc/$CONTAINER_NAME/rootfs/etc/apt/apt.conf.d/99force-ipv4
-
 # Start the container and check for failure
 lxc-start -n $CONTAINER_NAME || { echo "Failed to start the container. Exiting."; exit 1; }
 
@@ -149,23 +146,40 @@ lxc-start -n $CONTAINER_NAME || { echo "Failed to start the container. Exiting."
 echo "Starting container..."
 sleep 5
 
-echo "Checking network connectivity inside the container..."
+# Check IPv4 connectivity
+echo "Checking IPv4 connectivity..."
 RETRIES=12
 for i in $(seq 1 $RETRIES); do
-	if lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1"; then
-		echo "Network is reachable."
+	if lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -4 -c 1 -W 3 8.8.8.8 >/dev/null 2>&1"; then
+		echo "IPv4 is working."
 		break
 	fi
 	if [ "$i" -eq "$RETRIES" ]; then
-		echo "ERROR: No network connectivity inside the container after $((RETRIES * 5)) seconds."
+		echo "ERROR: No IPv4 connectivity inside the container after $((RETRIES * 5)) seconds."
 		echo "Please check your host network configuration and ensure the container has internet access."
 		lxc-stop -n $CONTAINER_NAME 2>/dev/null
 		exit 1
 	fi
-	echo "Waiting for network... (attempt $i/$RETRIES)"
+	echo "Waiting for IPv4 network... (attempt $i/$RETRIES)"
 	sleep 5
 done
 
+# Check IPv6 connectivity and DNS
+echo "Checking IPv6 connectivity..."
+if lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -6 -c 1 -W 3 2001:4860:4860::8888 >/dev/null 2>&1"; then
+	echo "IPv6 connectivity is working."
+	if lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -6 -c 1 -W 3 deb.debian.org >/dev/null 2>&1"; then
+		echo "IPv6 DNS is working."
+	else
+		echo "IPv6 DNS resolution failed. Forcing apt to use IPv4."
+		lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "echo 'Acquire::ForceIPv4 \"true\";' > /etc/apt/apt.conf.d/99force-ipv4"
+	fi
+else
+	echo "IPv6 is not available. Forcing apt to use IPv4."
+	lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "echo 'Acquire::ForceIPv4 \"true\";' > /etc/apt/apt.conf.d/99force-ipv4"
+fi
+
+# Check DNS resolution
 echo "Checking DNS resolution..."
 if ! lxc-attach -n $CONTAINER_NAME -- /bin/bash -c "ping -c 1 -W 3 deb.debian.org >/dev/null 2>&1"; then
 	echo "WARNING: DNS resolution failed. Attempting to fix..."
