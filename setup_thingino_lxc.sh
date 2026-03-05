@@ -254,6 +254,7 @@ lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "ccache --max-size=10G"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export PATH=/usr/bin/ccache:\$PATH:/home/$CONTAINER_USER/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/bin/' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export QEMU_LD_PREFIX=/home/$CONTAINER_USER/toolchain/mipsel-xburst1-thingino-linux-musl_sdk-buildroot/mipsel-thingino-linux-musl/sysroot' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export BR2_DL_DIR=/mnt/BR2_DL' >> ~/.bashrc"
+lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'export OUTPUT_ROOT_DIR=/home/$CONTAINER_USER/output' >> ~/.bashrc"
 lxc-attach -n $CONTAINER_NAME -- su - $CONTAINER_USER -c "echo 'alias install-additional-tools=\"\$HOME/scripts/additional-tools-setup.sh\"' >> ~/.bashrc"
 
 # Add an alias for the host's user to start the container
