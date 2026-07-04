@@ -3,10 +3,10 @@
 CONTAINER_NAME="thingino-development"
 CONTAINER_USER="dev"
 CONTAINER_CONFIG_FILE="/var/lib/lxc/$CONTAINER_NAME/config"
-VERSION=0.32
+VERSION=0.34
 PACKAGES="apt-transport-https apt-utils autoconf bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
-file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf python3 \
-qemu-user qemu-user-binfmt rsync ssh tftpd-hpa toilet \
+file figlet flex gawk gcc git libncurses-dev libusb-1.0-0-dev lzop make mc mtools nano nodejs npm parted patchelf python3 \
+python3-dev python3-setuptools qemu-user qemu-user-binfmt ripgrep rsync shfmt ssh tftpd-hpa toilet \
 toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
 # Parse command-line arguments
