@@ -4,10 +4,10 @@
 
 # Get the current logged-in user
 USER_NAME=$(whoami)
-VERSION=0.25
+VERSION=0.26
 PACKAGES="apt-transport-https apt-utils bc bison build-essential ca-certificates ccache cmake cpio curl dialog \
-file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf \
-qemu-user qemu-user-binfmt rsync software-properties-common ssh tftpd-hpa toilet \
+file figlet flex gawk gcc git libncurses-dev lzop make mc nano patchelf python3 \
+python3-dev python3-setuptools qemu-user qemu-user-binfmt rsync software-properties-common ssh tftpd-hpa toilet \
 toilet-fonts tree u-boot-tools unzip vim-tiny wget whiptail xterm"
 
 # Ensure the script is not running as root
